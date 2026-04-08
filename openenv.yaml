@@ -1,0 +1,61 @@
+name: email-triage-env
+version: "1.0.0"
+description: >
+  A real-world email triage environment where AI agents practice
+  spam detection, email prioritization, and customer reply generation.
+tags:
+  - openenv
+  - email
+  - nlp
+  - real-world
+  - classification
+
+tasks:
+  - id: easy
+    name: Spam Detection
+    difficulty: easy
+    description: Classify 6 emails as spam or ham. Score 0.0–1.0 per email.
+
+  - id: medium
+    name: Email Prioritization
+    difficulty: medium
+    description: Assign high/medium/low priority to 5 work emails. Partial credit for adjacent priorities.
+
+  - id: hard
+    name: Customer Reply Generation
+    difficulty: hard
+    description: Write a professional reply to an angry customer complaint. Scored on keyword coverage and tone.
+
+observation_space:
+  task_id: string
+  task_description: string
+  emails: list of email objects (id, subject, from, body)
+  current_step: integer
+  max_steps: integer
+  score_so_far: float
+
+action_space:
+  action_type:
+    - classify   # payload: {email_id, label: spam|ham}
+    - prioritize # payload: {email_id, priority: high|medium|low}
+    - reply      # payload: {email_id, reply_text}
+
+reward:
+  range: [-0.1, 1.0]
+  intermediate: true
+  description: >
+    Reward is given at each step (not just at end).
+    Correct actions score 1.0. Adjacent priorities score 0.5.
+    Wrong or invalid actions score 0.0 or -0.1.
+
+interface:
+  reset: "returns initial Observation"
+  step: "Action → (Observation, Reward, done: bool, info: dict)"
+  state: "returns full current state dict"
+
+baseline_model: meta-llama/Llama-3.2-3B-Instruct
+baseline_scores:
+  easy: 0.833
+  medium: 0.700
+  hard: 0.620
+  overall: 0.718
